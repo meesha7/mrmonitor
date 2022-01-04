@@ -52,8 +52,20 @@ def show(project, user):
             if mr.downvotes:
                 downvotes_str = f"[bold red]-{mr.downvotes}[/bold red]"
 
+            approvals = mr.approvals.get()
+
+            approved = (
+                "[bold green]Yes[/bold green]" if approvals.approved else "[bold red]No[/bold red]"
+            )
+            approvers = (
+                "by " + ", ".join([ap["user"]["username"] for ap in approvals.approved_by])
+                if approvals.approved
+                else ""
+            )
+
             rich.print(f"  {iid_str} {title_str} [{upvotes_str} {downvotes_str}]")
-            print(f"    Author: {mr.author['username']}")
+            print(f"    Author:   {mr.author['username']}")
+            rich.print(f"    Approved: {approved} {approvers}")
             print(f"    {mr.web_url}")
             print()
 
