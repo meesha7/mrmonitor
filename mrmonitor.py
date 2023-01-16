@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 
 import arrow
 import click
@@ -10,6 +11,8 @@ import rich
 dotenv.load_dotenv()
 
 gl = gitlab.Gitlab(os.getenv("GITLAB_URI"), private_token=os.getenv("PRIVATE_TOKEN"))
+JIRA_URL = os.getenv("JIRA_URL", "").removesuffix("/")
+JIRA_REGEX = [re.compile(regex) for regex in os.getenv("JIRA_REGEX", "").split(",")]
 
 
 @click.group()
@@ -68,7 +71,14 @@ def show(project, user):
             rich.print(f"  {iid_str} {title_str} [{upvotes_str} {downvotes_str}]")
             print(f"    Author:   {mr.author['username']}")
             rich.print(f"    Approved: {approved} {approvers}")
-            print(f"    {mr.web_url}")
+            print(f"    URL:      {mr.web_url}")
+
+            if JIRA_URL and JIRA_REGEX:
+                for pattern in JIRA_REGEX:
+                    if m := pattern.search(mr.title):
+                        issue_id = m.group(1)
+                        print(f"    JIRA:     {JIRA_URL}/{issue_id}")
+
             print()
 
             # Dates
