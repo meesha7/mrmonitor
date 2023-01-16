@@ -55,11 +55,13 @@ def show(project, user):
             approvals = mr.approvals.get()
 
             approved = (
-                "[bold green]Yes[/bold green]" if approvals.approved else "[bold red]No[/bold red]"
+                "[bold green]Yes[/bold green]"
+                if approvals.approved_by
+                else "[bold red]No[/bold red]"
             )
             approvers = (
                 "by " + ", ".join([ap["user"]["username"] for ap in approvals.approved_by])
-                if approvals.approved
+                if approvals.approved_by
                 else ""
             )
 
