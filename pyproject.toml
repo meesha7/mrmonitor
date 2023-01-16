@@ -2,16 +2,16 @@
 name = "mrmonitor"
 version = "0.1.0"
 description = "Monitor your MRs on Gitlab"
-authors = ["Meesha <44530786+meesha7@users.noreply.github.com>"]
+authors = ["staticf0x <44530786+staticf0x@users.noreply.github.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-python-gitlab = "^2.10.1"
-python-dotenv = "^0.19.2"
-rich = "^10.13.0"
-arrow = "^1.2.1"
-click = "^8.0.3"
+python-gitlab = "^3.12"
+python-dotenv = "^0.21"
+rich = "^13.1"
+arrow = "^1.2"
+click = "^8.1"
 
 [tool.poetry.dev-dependencies]
 
