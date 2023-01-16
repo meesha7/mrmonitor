@@ -106,4 +106,12 @@ def show(project, user):
 
 
 if __name__ == "__main__":
+    if not os.getenv("GITLAB_URI"):
+        rich.print("[bold red]GITLAB_URI not configured[/bold red]")
+        exit(1)
+
+    if not os.getenv("PRIVATE_TOKEN"):
+        rich.print("[bold red]PRIVATE_TOKEN not configured[/bold red]")
+        exit(1)
+
     cli()
