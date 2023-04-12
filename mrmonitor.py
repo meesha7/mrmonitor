@@ -7,6 +7,7 @@ import click
 import dotenv
 import gitlab
 import rich
+from rich.console import Console
 
 dotenv.load_dotenv()
 
@@ -15,17 +16,42 @@ JIRA_URL = os.getenv("JIRA_URL", "").removesuffix("/")
 JIRA_REGEX = [re.compile(regex) for regex in os.getenv("JIRA_REGEX", "").split(",")]
 
 
+def _get_jira_link(mr) -> str | None:
+    if JIRA_URL and JIRA_REGEX:
+        for pattern in JIRA_REGEX:
+            if m := pattern.search(mr.title):
+                issue_id = m.group(1)
+                return issue_id
+
+def _get_colored_pipeline_status(pipeline) -> str:
+    match pipeline.status:
+        case "failed":
+            color = "red"
+        case "pending":
+            color = "yellow"
+        case "running":
+            color = "cyan"
+        case "success":
+            color = "green"
+        case _:
+            color = "grey"
+
+    return f"[{color}]{pipeline.status}[/{color}]"
+
+
 @click.group()
 def cli():
     pass
 
 
 @cli.command(help="List MRs from given projects (IDs separated by comma)")
-@click.argument("project", required=True)
+@click.argument("project_ids", required=True)
 @click.option("--user", help="Filter for username")
-def show(project, user):
-    projects = project.split(",")
+def show(project_ids, user):
+    """Show MRs for a single user across projects."""
+    projects = project_ids.split(",")
     first = True
+    console = Console(highlight=False)
 
     for project_id in projects:
         project = gl.projects.get(project_id)
@@ -68,16 +94,19 @@ def show(project, user):
                 else ""
             )
 
-            rich.print(f"  {iid_str} {title_str} [{upvotes_str} {downvotes_str}]")
-            print(f"    Author:   {mr.author['username']}")
-            rich.print(f"    Approved: {approved} {approvers}")
-            print(f"    URL:      {mr.web_url}")
+            console.print(f"  {iid_str} {title_str} [{upvotes_str} {downvotes_str}]")
+            console.print(f"    Author:   {mr.author['username']}")
+            console.print(f"    Approved: {approved} {approvers}")
+            console.print(f"    URL:      [link={mr.web_url}]MR {mr.iid}[/link]")
 
-            if JIRA_URL and JIRA_REGEX:
-                for pattern in JIRA_REGEX:
-                    if m := pattern.search(mr.title):
-                        issue_id = m.group(1)
-                        print(f"    JIRA:     {JIRA_URL}/{issue_id}")
+            if issue_id := _get_jira_link(mr):
+                console.print(f"    JIRA:     [link={JIRA_URL}/{issue_id}]{issue_id}[/link]")
+
+            pipelines = mr.pipelines.list()
+
+            if pipelines:
+                last_pipeline = sorted(pipelines, key=lambda x: x.id)[-1]
+                console.print(f"    Pipeline: {_get_colored_pipeline_status(last_pipeline)}")
 
             print()
 
@@ -111,7 +140,7 @@ def show(project, user):
                     f"[cyan]Since update:[/cyan] [bold green]{since_update.days} days[/bold green]"
                 )
 
-            rich.print("    " + " | ".join(infos))
+            console.print("    " + " | ".join(infos))
             print()
 
 
