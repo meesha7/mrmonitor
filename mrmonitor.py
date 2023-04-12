@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import re
+import sys
 
 import arrow
 import click
@@ -23,6 +24,8 @@ def _get_jira_link(mr) -> str | None:
                 issue_id = m.group(1)
                 return issue_id
 
+    return None
+
 def _get_colored_pipeline_status(pipeline) -> str:
     match pipeline.status:
         case "failed":
@@ -40,14 +43,14 @@ def _get_colored_pipeline_status(pipeline) -> str:
 
 
 @click.group()
-def cli():
+def cli() -> None:
     pass
 
 
 @cli.command(help="List MRs from given projects (IDs separated by comma)")
 @click.argument("project_ids", required=True)
 @click.option("--user", help="Filter for username")
-def show(project_ids, user):
+def show(project_ids: str, user: str) -> None:
     """Show MRs for a single user across projects."""
     projects = project_ids.split(",")
     first = True
@@ -147,10 +150,10 @@ def show(project_ids, user):
 if __name__ == "__main__":
     if not os.getenv("GITLAB_URI"):
         rich.print("[bold red]GITLAB_URI not configured[/bold red]")
-        exit(1)
+        sys.exit(1)
 
     if not os.getenv("PRIVATE_TOKEN"):
         rich.print("[bold red]PRIVATE_TOKEN not configured[/bold red]")
-        exit(1)
+        sys.exit(1)
 
     cli()
