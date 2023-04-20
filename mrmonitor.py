@@ -105,7 +105,7 @@ def show(project_ids: str, user: str) -> None:
             if issue_id := _get_jira_link(mr):
                 console.print(f"    JIRA:     [link={JIRA_URL}/{issue_id}]{issue_id}[/link]")
 
-            pipelines = mr.pipelines.list()
+            pipelines = mr.pipelines.list(get_all=True)
 
             if pipelines:
                 last_pipeline = sorted(pipelines, key=lambda x: x.id)[-1]
